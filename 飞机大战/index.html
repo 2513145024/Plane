@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>飞机大战</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+				font-family: "楷体";
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+		window.onload = function() {
+			game.exe();
+		};
+
+
+		var game = {
+				//启动程序
+
+				exe: function() {
+					document.body.style.background = "#000";
+					var oDiv = document.createElement('div');
+					oDiv.id = 'GameBox';
+					oDiv.style.cssText =
+						'width:500px;height:700px;border:10px solid #fff;margin:50px auto;text-align:center;position: relative;overflow: hidden;background: #99CCFF;';	
+					document.body.appendChild(oDiv);
+					this.init();
+									
+				},
+				
+				score :0,
+				
+				ifEnd : false,
+
+				//初始化
+				init: function() {
+					This = this;
+					var oDiv = document.getElementById('GameBox');
+					oDiv.innerHTML = '';
+					game.score = 0;
+					game.ifEnd = false;
+					var oH = document.createElement('h1');
+					oH.innerHTML = '飞机大战v1.0';
+					oH.style.cssText = 'color:#9933FF;text-shadow:4px 3px 4px #000;padding-top:50px;font-size:40px;font-weight: blod;';
+					
+					
+					oDiv.appendChild(oH);					
+					
+
+					for (var i = 0; i < 4; i++) {
+						var oP = document.createElement('p');
+						oP.index = i;
+						oP.onmousemove = function(){
+							this.style.background = '#58D68D';
+							this.style.color = '#fff';
+						}
+						oP.onmouseout = function(){
+							this.style.background = '#fff';
+							this.style.color = '#000';
+						}						
+						oP.style.cssText = 'font-size:20px;font-weight:bold;color:#000;width:180px;height:50px;margin:80px auto;text-align:center;line-height:50px;background:#fff;cursor: pointer;';
+						oP.onclick = function(e){
+							e = e||window.event;
+							game.start(this.index , oDiv, e);
+						}
+						var html = '';
+						switch (i) {
+							case 0:
+								html = '简单难度';
+								break;
+							case 1:
+								html = '中等难度';
+								break;
+							case 2:
+								html = '困难难度';
+								break;
+							case 3:
+								html = '升天模式';
+								oP.style.color = '#f40';
+								oP.style.fontWeight = 'bold';
+								oP.onmouseout = function(){
+									this.style.color = '#f40';
+									this.style.background = '#fff';
+								};
+								break;								
+						}						
+						oP.innerHTML = html;
+						oDiv.appendChild(oP)
+					}
+				},
+				
+				//游戏开始
+				start : function( index ,oGameBox, e){
+					oGameBox.innerHTML = '';
+					var oS = document.createElement('span');
+						oS.innerHTML = this.score;
+						oS.style.cssText = 'position: absolute;left:0px;top:0px;font-size:40px;color:#9933CC';
+					oGameBox.appendChild( oS );
+					this.plane( oGameBox ,e , index);
+					this.enemy( oGameBox ,oS , index);
+					
+				},
+				
+				
+				//构造飞机
+				plane : function( oGameBox ,e ,index){
+					var x = e.pageX;
+						y = e.pageY;
+						
+					
+					var oPlane = new Image();
+						oPlane.src = 'img/plane.gif';
+						oPlane.width = 50;
+						oPlane.height = 50;
+						oPlane.id = 'plane';
+						
+					var tY = oGameBox.offsetTop+parseInt(oGameBox.style.borderWidth)+oPlane.height/2;
+					var lX = oGameBox.offsetLeft+parseInt(oGameBox.style.borderWidth)+oPlane.width/2;
+					window.onresize = function(){ 		//重新获取x的值
+						lX = oGameBox.offsetLeft+parseInt(oGameBox.style.borderWidth)+oPlane.width/2;
+					}
+					var top = y-tY;
+					var left = x-lX;				
+						oPlane.style.cssText = 
+						'display: block;position: absolute;top:'+top+'px;left:'+left+'px;';
+					oGameBox.appendChild( oPlane );
+					
+					//框的限制
+					var leftMin = - oPlane.width/2;
+					var leftMax = oGameBox.clientWidth - oPlane.width/2;
+					var topMin = - 0;
+					var topMax = oGameBox.clientHeight - oPlane.height;
+					
+					
+					
+					
+					document.onmousemove = function(e){
+						if( !game.ifEnd ){
+							e = e || window.event;
+							var top = e.pageY - tY;
+							var left = e.pageX - lX;
+							
+							top = Math.min( top, topMax);			//取top最小
+							top = Math.max( top, topMin);			//取top最大
+							left = Math.min( left, leftMax);			//取left最小
+							left = Math.max( left, leftMin);			//取left最大
+							
+							oPlane.style.top = top + 'px';
+							oPlane.style.left = left +'px';	
+						}					
+					}
+					this.biubiu( oPlane , oGameBox ,index);
+				},
+				
+				//飞机子弹
+				biubiu : function( oPlane , oGameBox ,index){
+					
+					var speed;
+					switch ( index ){
+						case 0:
+							speed = 400;
+							break;
+						case 1:
+							speed = 250;
+							break;
+						case 2:
+							speed = 100;
+							break;
+						case 3:
+							speed = 10;
+							break;
+					}
+					
+					this.Biutimer = setInterval( function(){
+						var oBiu = new Image();
+							oBiu.src = 'img/zidan.png';		 /*子弹top————飞机top-子弹的高度	 子弹的left————飞机的left+飞机宽度一半+子弹宽度一半*/
+							oBiu.width = 6;																	
+							oBiu.height = 20;
+							oBiu.className = 'biubiu';
+						var top = oPlane.offsetTop - oBiu.height + 5;
+						var left = oPlane.offsetLeft + oPlane.width/2 - oBiu.width/2;
+							oBiu.style.cssText = 'position: absolute;top:'+top+'px;left:'+left+'px;';
+						oGameBox.appendChild( oBiu );
+							
+						oBiu.timer = setInterval( function (){
+							if ( !oBiu.parentNode ){
+								clearInterval( oBiu.timer)
+							}
+							oBiu.style.top = oBiu.offsetTop - 10+ 'px';				//---------子弹射击速度
+							if ( oBiu.offsetTop < -oBiu.height ){
+								clearInterval( oBiu.timer );
+								oBiu.parentNode.removeChild( oBiu );
+							}
+						},15);			
+							
+					},speed);				//---------子弹生成速度
+					
+				},
+				
+				//敌军飞机
+				enemy : function( oGameBox, oS ,index){
+					
+					var a , x;
+					switch (index){
+						case 0:
+							a = 1;
+							x = 500;
+							break;
+						case 1:
+							a = 3;
+							x = 300;
+							break;
+						case 2:
+							a = 5;
+							x = 200;
+							break;
+						case 3:
+							a = 10;
+							x = 100;
+							break;
+					}
+					
+					this.Enemytimer = setInterval( function(){
+						var oEnemy = new Image();
+							oEnemy.src = 'img/diren.png'
+							oEnemy.width = 50;
+							oEnemy.height = 50;
+						var lMin = 0;
+						var lMax = oGameBox.clientWidth - oEnemy.width;
+						var left = Math.random() * (lMax-lMin) + lMin;						
+							oEnemy.style.cssText = 'position: absolute;top:'+(-oEnemy.height)+'px;left:'+left+'px;';
+						oGameBox.appendChild( oEnemy );
+						var b = Math.random() * 5 +1;
+						
+						oEnemy.timer = setInterval( function(){
+							
+							oEnemy.style.top = oEnemy.offsetTop + a +'px';		//敌军下落速度
+							if( oEnemy.offsetTop > oGameBox.clientHeight ){
+								clearInterval( oEnemy.timer );
+								oEnemy.parentNode.removeChild( oEnemy );
+							};													
+						},13);
+									
+						//敌军和子弹碰撞检测
+						var allBiu = game.getClass('biubiu');
+						oEnemy.pzTimer = setInterval(function(){
+							
+							for(var i =0;i<allBiu.length;i++){
+								if( game.boom( oEnemy, allBiu[i] ) ){
+									
+									game.score +=10;
+									oS.innerHTML = game.score;
+									allBiu[i].parentNode.removeChild( allBiu[i] )
+									oEnemy.src = 'img/boom.png';
+									clearInterval( oEnemy.pzTimer );
+									clearInterval( oEnemy.pzPlane )
+									setTimeout(function(){
+										if( oEnemy.parentNode ){
+											oEnemy.parentNode.removeChild( oEnemy );		
+										}
+																	
+									},300);
+									break;
+								}
+							}
+						},50);
+						
+						//敌军和飞机的碰撞检测
+						var oPlane = document.getElementById('plane');
+						oEnemy.pzPlane = setInterval( function (){
+							if( game.ifEnd ){
+								clearInterval( oEnemy.pzPlane );
+							}
+							
+							if( game.boom( oEnemy, oPlane )){
+								
+								game.ifEnd = true;
+								clearInterval( game.Biutimer );
+								clearInterval( game.Enemytimer );
+								clearInterval( oEnemy.pzPlane );
+								oEnemy.src = 'img/boom.png';
+								oPlane.src = 'img/boom2.gif';
+								setTimeout(function(){
+									game.over( oGameBox );		
+								},1000);
+								
+							}
+						},50);
+						
+					},x);				//---敌军生成速度
+				},
+				
+				//碰撞检测
+				boom : function ( obj1 , obj2 ){
+					var T1 = obj1.offsetTop;
+					var B1 = T1 + obj1.clientHeight;
+					var L1 = obj1.offsetLeft;
+					var R1 = L1 + obj1.clientWidth;
+					
+					var T2 = obj2.offsetTop;
+					var B2 = T2 + obj2.clientHeight;
+					var L2 = obj2.offsetLeft;
+					var R2 = L2 + obj2.clientWidth;
+					
+					if ( R2 < L1 || L2 > R1 || B2 < T1 || T2 > B1 ){
+						return false;									//没有发生碰撞
+					}else{
+						return true;									//发生碰撞
+					}
+					
+				},
+				
+				//游戏结束
+				over : function( oGameBox ){
+					oGameBox.innerHTML = '';
+					var oDiv = document.createElement('div');
+						oDiv.style.cssText = 'width:400px;height:600px;margin:50px;background:#fff;color:red;';
+					var oT = document.createElement('h1');
+						oT.innerHTML = 'Game Over!';
+						oT.style.cssText = 'padding:100px'
+					var oP1 = document.createElement('p');
+						oP1.innerHTML = '您的得分是:'+'<span style="color:#FF99CC;font-weight:bold;">'+this.score+'</span>';
+						oP1.style.cssText = 'font-size:28px;color:#99CC66;';
+					var oRestart = document.createElement('div');
+						oRestart.style.cssText = 'width:200px;height:80px;text-align:center;font-size:30px;line-height:80px;color:#FF9900;background:#6699CC;margin:80px auto;border-radius: 20px;cursor:pointer;';
+						oRestart.innerHTML = "重新开始"
+					oRestart.onclick = function(){
+						game.init()
+					}
+						
+					
+					oDiv.appendChild( oT );
+					oDiv.appendChild( oP1 );
+					oDiv.appendChild( oRestart );
+					oGameBox.appendChild( oDiv );
+					
+					
+				},
+				
+				
+				getClass : function( cName ,parent){
+					parent = parent || document;
+					if (document.getElementsByClassName){
+						return parent.getElementsByClassName(cName);
+					}else{
+						var all = parent.getElementsByTagName('*');
+						var arr = [];
+						for (var i= 0;i<all.length;i++){
+							var arrClass = all.className.split(' ');
+							for(var j = 0;j<arrClass.length;j++ ){
+								if (arrClass[j] == cName ){
+									arr.push( all[i] );
+									break;
+								}
+							}
+						}
+						return arr;
+					}
+				}
+
+
+			}
+		</script>
+	</body>
+</html>
